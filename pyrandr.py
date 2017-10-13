@@ -41,7 +41,7 @@ class Output(object):
 
 class Organizer(object):
     def __init__(self):
-        self._outputs = []
+        self._outputs = {}
         self._get_outputs()
 
     def __repr__(self):
@@ -59,8 +59,8 @@ class Organizer(object):
                 name = data['output']
                 connected = data['status'] == 'connected'
                 primary = bool(data['is_primary'])
-                self._outputs.append(Output(name, connected, primary))
-                self._outputs[-1].active = bool(data['active'])
+                self._outputs[name] = Output(name, connected, primary)
+                self._outputs[name].active = bool(data['active'])
                 in_output = True
                 continue
 
@@ -68,18 +68,14 @@ class Organizer(object):
             if match and in_output:
                 in_output = False
                 data = match.groupdict()
-                self._outputs[-1].x = int(data['width'])
-                self._outputs[-1].y = int(data['height'])
+                self._outputs[name].x = int(data['width'])
+                self._outputs[name].y = int(data['height'])
 
                 continue
 
     def output_list(self):
-        _outs = {}
-        for out in self._outputs:
-            _outs[out.name] = out
-
-        for name in sorted(_outs.keys()):
-            print _outs[name]
+        for name in sorted(self._outputs.keys()):
+            print self._outputs[name]
 
 
 def main():

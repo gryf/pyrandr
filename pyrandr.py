@@ -9,7 +9,7 @@ import subprocess
 import re
 
 
-DISPLAY_RE = re.compile(r'^(?P<output>[a-zA-Z0-9]+)\s'
+DISPLAY_RE = re.compile(r'^(?P<output>[a-zA-Z0-9-]+)\s'
                         r'(?P<status>d?i?s?connected)\s'
                         r'(?P<is_primary>primary\s)?'
                         r'(?P<active>\d+x\d+\+\d+\+\d+\s)?'

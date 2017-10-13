@@ -77,16 +77,54 @@ class Organizer(object):
         for name in sorted(self._outputs.keys()):
             print self._outputs[name]
 
+    def set_single(self, out_name):
+        pass
+
+    def set(self, outputs, options):
+        if len(outputs) == 1:
+            self.set_single(outputs[0])
+            return
+
+        for name, out in self._outputs.items():
+            if name not in outputs:
+                out.active = False
+            else:
+                out.active = True
+
+    def panic(self):
+        """Just turn on all outputs at once in "mirror" mode"""
+        cmd = ['xrandr']
+        for name in self._outputs:
+            out = self._outputs[name]
+            if not out.connected:
+                cmd.extend(['--output', out.name, '--off'])
+                continue
+
+            cmd.extend(['--output', out.name,
+                        '--mode', "%dx%d" % (out.x, out.y),
+                        '--pos', "%dx%d" % (out.shift_x, out.shift_y),
+                        '--rotate', "normal"])
+
+        subprocess.call(cmd)
+
 
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('output', nargs='*', help='name of the output')
+    parser.add_argument('-p', '--panic', action='store_true', help='Turn on '
+                        'all connected outputs')
     args = parser.parse_args()
 
     org = Organizer()
 
+    if args.panic:
+        org.panic()
+        return
+
     if not args.output:
         org.output_list()
+        return
+
 
 if __name__ == "__main__":
     main()

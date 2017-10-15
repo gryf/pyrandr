@@ -139,6 +139,43 @@ class Organizer(object):
         logging.debug("command to execute: \n%s", " ".join(cmd))
         subprocess.call(cmd)
 
+    def set_outputs(self, output_list, primary):
+        """
+        Arrange displays in horizontal way, starting from first outpu in
+        output_list as leftmost
+        """
+        logging.info('Set output horizontally in order: %s', '
+                     '.join(output_list))
+
+        # check, if primary is in output_list
+        if primary and primary not in output_list:
+            raise ValueError("Cannot set primary to '%s', since it is not "
+                             "connected or it is turned off" % primary)
+
+        # check if output_list contains right names
+        for name in output_list:
+            if name not in self._outputs:
+                raise ValueError("Output `%s' doesn't exists" % name)
+
+        # "disconnect" output, so that we can turn it off
+        for name in self._outputs:
+            if name not in output_list:
+                self._outputs[name].connected = False
+
+        # calculate position for every output
+        shift = 0
+        for name in output_list:
+            self._outputs[name].shift_x = shift
+            logging.debug(self._outputs[name])
+            shift = self._outputs[name].x
+
+        cmd = ['xrandr']
+        for name in self._outputs:
+            cmd.extend(self._outputs[name].get_randr_options(primary == name))
+
+        logging.debug("command to execute: \n%s", " ".join(cmd))
+        subprocess.call(cmd)
+
 
 def main():
     parser = argparse.ArgumentParser()
@@ -163,9 +200,12 @@ def main():
         org.panic(args.primary)
         return
 
-    if not args.output:
-        org.output_list()
+    if args.outputs:
+        org.set_outputs(args.outputs, args.primary)
         return
+
+    # just display outputs
+    org.output_list()
 
 
 if __name__ == "__main__":

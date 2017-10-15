@@ -52,9 +52,10 @@ class Output(object):
     def __repr__(self):
         active = 'active' if self.active else 'inactive'
         connected = 'conected' if self.connected else 'disconnected'
+        primary = 'primary ' if self.primary else ''
         if self.connected:
-            return "%s %s %s (%dx%s)" % (self.name, connected, active,
-                                         self.x, self.y)
+            return "%s %s %s %s(%dx%s)" % (self.name, connected, active,
+                                           primary, self.x, self.y)
         else:
             return "%s %s %s" % (self.name, connected, active)
 
@@ -144,8 +145,8 @@ class Organizer(object):
         Arrange displays in horizontal way, starting from first outpu in
         output_list as leftmost
         """
-        logging.info('Set output horizontally in order: %s', '
-                     '.join(output_list))
+        logging.info('Set output horizontally in order: %s',
+                     ' '.join(output_list))
 
         # check, if primary is in output_list
         if primary and primary not in output_list:

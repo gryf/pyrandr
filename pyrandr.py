@@ -5,8 +5,9 @@
 Simple xrandr wrapper for organising output layout
 """
 import argparse
-import subprocess
+import logging
 import re
+import subprocess
 
 
 DISPLAY_RE = re.compile(r'^(?P<output>[a-zA-Z0-9-]+)\s'
@@ -15,6 +16,25 @@ DISPLAY_RE = re.compile(r'^(?P<output>[a-zA-Z0-9-]+)\s'
                         r'(?P<active>\d+x\d+\+\d+\+\d+\s)?'
                         r'.*')
 RESOLUTION_RE = re.compile(r'^\s+(?P<width>\d+)x(?P<height>\d+)\s.*')
+
+
+def setup_logger(args):
+    """Setup logger format and level"""
+
+    level = logging.WARNING
+
+    if args.quiet:
+        level = logging.ERROR
+        if args.quiet > 1:
+            level = logging.CRITICAL
+
+    if args.verbose:
+        level = logging.INFO
+        if args.verbose > 1:
+            level = logging.DEBUG
+
+    logging.basicConfig(level=level,
+                        format="%(levelname)s: %(message)s")
 
 
 class Output(object):
@@ -108,13 +128,15 @@ class Organizer(object):
             else:
                 out.active = True
 
-    def panic(self, primary=None):
+    def panic(self, primary):
         """Just turn on all outputs at once in "mirror" mode"""
+        logging.info('Panic mode')
         cmd = ['xrandr']
         for name in self._outputs:
             out = self._outputs[name]
-            cmd.extend(out.get_randr_options((primary == out.name)))
+            cmd.extend(out.get_randr_options(primary == out.name))
 
+        logging.debug("command to execute: \n%s", " ".join(cmd))
         subprocess.call(cmd)
 
 
@@ -125,7 +147,15 @@ def main():
                         'all connected outputs')
     parser.add_argument('-p', '--primary', help='Set specified output as '
                         'primary')
+
+    parser.add_argument('-v', '--verbose', help='Be verbose. Adding more "v" '
+                        'will increase verbosity', action="count",
+                        default=None)
+    parser.add_argument('-q', '--quiet', help='Be quiet. Adding more "q" will '
+                        'decrease verbosity', action="count", default=None)
+
     args = parser.parse_args()
+    setup_logger(args)
 
     org = Organizer()
 

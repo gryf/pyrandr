@@ -112,22 +112,8 @@ class Organizer(object):
                 continue
 
     def output_list(self):
-        for name in sorted(self._outputs.keys()):
+        for name in sorted(self._outputs):
             print(self._outputs[name])
-
-    def set_single(self, out_name):
-        pass
-
-    def set(self, outputs, options):
-        if len(outputs) == 1:
-            self.set_single(outputs[0])
-            return
-
-        for name, out in self._outputs.items():
-            if name not in outputs:
-                out.active = False
-            else:
-                out.active = True
 
     def panic(self, primary):
         """Just turn on all outputs at once in "mirror" mode"""

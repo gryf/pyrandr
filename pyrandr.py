@@ -38,15 +38,22 @@ class Output(object):
         else:
             return "%s %s %s" % (self.name, connected, active)
 
-    def get_randr_options(self):
+    def get_randr_options(self, primary=False):
         """Return options for xrandr command as a list"""
         if self.connected:
-            return ['--output', self.name,
-                    '--mode', "%dx%d" % (self.x, self.y),
-                    '--pos', "%dx%d" % (self.shift_x, self.shift_y),
-                    '--rotate', "normal"]
+            options = ['--output', self.name,
+                       '--mode', "%dx%d" % (self.x, self.y),
+                       '--pos', "%dx%d" % (self.shift_x, self.shift_y),
+                       '--rotate', "normal"]
+            if primary:
+                options.append('--primary')
         else:
-            return ['--output', self.name, '--off']
+            if primary:
+                raise ValueError('Cannot set output to be primary since it\'s'
+                                 ' not connected.')
+            options = ['--output', self.name, '--off']
+
+        return options
 
 
 class Organizer(object):
@@ -101,27 +108,29 @@ class Organizer(object):
             else:
                 out.active = True
 
-    def panic(self):
+    def panic(self, primary=None):
         """Just turn on all outputs at once in "mirror" mode"""
         cmd = ['xrandr']
         for name in self._outputs:
             out = self._outputs[name]
-            cmd.extend(out.get_randr_options())
+            cmd.extend(out.get_randr_options((primary == out.name)))
 
         subprocess.call(cmd)
 
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument('output', nargs='*', help='name of the output')
-    parser.add_argument('-p', '--panic', action='store_true', help='Turn on '
+    parser.add_argument('outputs', nargs='*', help='name of the output')
+    parser.add_argument('-a', '--panic', action='store_true', help='Turn on '
                         'all connected outputs')
+    parser.add_argument('-p', '--primary', help='Set specified output as '
+                        'primary')
     args = parser.parse_args()
 
     org = Organizer()
 
     if args.panic:
-        org.panic()
+        org.panic(args.primary)
         return
 
     if not args.output:

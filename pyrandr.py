@@ -38,6 +38,16 @@ class Output(object):
         else:
             return "%s %s %s" % (self.name, connected, active)
 
+    def get_randr_options(self):
+        """Return options for xrandr command as a list"""
+        if self.connected:
+            return ['--output', self.name,
+                    '--mode', "%dx%d" % (self.x, self.y),
+                    '--pos', "%dx%d" % (self.shift_x, self.shift_y),
+                    '--rotate', "normal"]
+        else:
+            return ['--output', self.name, '--off']
+
 
 class Organizer(object):
     def __init__(self):
@@ -96,14 +106,7 @@ class Organizer(object):
         cmd = ['xrandr']
         for name in self._outputs:
             out = self._outputs[name]
-            if not out.connected:
-                cmd.extend(['--output', out.name, '--off'])
-                continue
-
-            cmd.extend(['--output', out.name,
-                        '--mode', "%dx%d" % (out.x, out.y),
-                        '--pos', "%dx%d" % (out.shift_x, out.shift_y),
-                        '--rotate', "normal"])
+            cmd.extend(out.get_randr_options())
 
         subprocess.call(cmd)
 

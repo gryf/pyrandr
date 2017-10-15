@@ -90,7 +90,7 @@ class Organizer(object):
 
         in_output = False
 
-        for line in xrandr.split('\n'):
+        for line in xrandr.decode().split('\n'):
             match = DISPLAY_RE.match(line)
             if match:
                 data = match.groupdict()
@@ -113,7 +113,7 @@ class Organizer(object):
 
     def output_list(self):
         for name in sorted(self._outputs.keys()):
-            print self._outputs[name]
+            print(self._outputs[name])
 
     def set_single(self, out_name):
         pass
